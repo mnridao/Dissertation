@@ -33,7 +33,8 @@ if __name__ == "__main__":
     omega = 1.25e-4    
     dpsidx = lambda x, t: ((1/x - 2*x*(np.pi/xL)**2)*
                            psi0*(np.pi*x/xL)*np.sin(omega*t)*np.exp(-(np.pi*x/xL)**2))
-    s = lambda x, t: 1j*N*(1 + dpsidx(x, t))
+    # s = lambda x, t: 1j*N*(1 + dpsidx(x, t))
+    s = lambda x, t: 1j*N* + dpsidx(x, t)
     
     # Loop over time.
     endtime = 4e6
@@ -61,6 +62,9 @@ if __name__ == "__main__":
                         si*dt*(1 - alpha))
             phi1[i] /= (1 + alpha*beta*c - si*dt*alpha)
         
+        # Update outlet bc (later).
+        # ...
+        
         # Second iteration (k2 step).
         phi2 = np.zeros_like(phi0, dtype=np.complex128)
         
@@ -78,11 +82,14 @@ if __name__ == "__main__":
                         (2*phi1[i] - phi1[i-1] - phi1[i-2])/6) + 
                         si*dt*(1 - alpha)*phi0[i])
             phi2[i] /= (1 + alpha*beta*c - si*dt*alpha)
-                
+        
+        # Update outlet bc (later).
+        # ...
+        
         # Update phi0.
         phi0 = phi2.copy()
         # phi0 = phi1.copy()
         
-        plt.plot(X, phi2.imag)
+        plt.plot(X, phi2.real)
         plt.ylim([-0.003, 0.003])
         plt.show()
