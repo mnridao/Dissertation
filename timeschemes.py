@@ -25,15 +25,16 @@ if __name__ == "__main__":
     # Parameters.
     alpha = 0.5
     beta  = 0.
-    gamma = 1
+    gamma = 1.
     
     # Source term.
+    lx = 160e3
     N     = 0.02
     # N = 1e-3
     psi0 = 10 
     omega = 1.25e-4    
-    dpsidx = lambda x, t: ((1/x - 2*x*(np.pi/xL)**2)*
-                           psi0*(np.pi*x/xL)*np.sin(omega*t)*np.exp(-(np.pi*x/xL)**2))
+    dpsidx = lambda x, t: ((1/x - 2*x*(np.pi/lx)**2)*
+                           psi0*(np.pi*x/lx)*np.sin(omega*t)*np.exp(-(np.pi*x/lx)**2))
 
     # Loop over time.
     endtime = 4e6
@@ -61,9 +62,9 @@ if __name__ == "__main__":
                         
                         # Something wrong with source term i think :(
                         dt*(1 - alpha)*1j*N*phi0[i] + 
-                        1j*N*dt*dpsidx(i*dx, t*dt)
-                        # 1j*N*dt*((1 - alpha)*dpsidx(i*dx, (t-1)*dt) + 
-                        #          alpha*dpsidx(i*dx, t*dt))
+                        # 1j*N*dt*dpsidx(i*dx, t*dt)
+                        1j*N*dt*((1 - alpha)*dpsidx(i*dx, (t-1)*dt) + 
+                                  alpha*dpsidx(i*dx, t*dt))
                         )
             phi1[i] /= (1 + alpha*beta*c - dt*alpha*1j*N)
                 
@@ -91,7 +92,9 @@ if __name__ == "__main__":
                         
                         # Something wrong with source term i think :(
                         dt*(1 - alpha)*1j*N*phi0[i] + 
-                        1j*N*dt*dpsidx(i*dx, t*dt))
+                        1j*N*dt*((1 - alpha)*dpsidx(i*dx, (t-1)*dt) + 
+                                  alpha*dpsidx(i*dx, t*dt))
+                        )
             phi2[i] /= (1 + alpha*beta*c - 1j*N*dt*alpha)
                 
         # Update phi0.
@@ -101,7 +104,6 @@ if __name__ == "__main__":
         # imag -> w 
         # real -> b
         
-        plt.plot(X, phi2.imag)
-        # plt.ylim([-1e-5, 1e-5]) # imag
-        # plt.ylim([-5e-4, 5e-4]) # real
+        plt.plot(X, phi2.real)
+        # plt.ylim([-1e-6, 1e-6])
         plt.show()
