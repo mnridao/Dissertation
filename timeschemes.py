@@ -10,7 +10,7 @@ if __name__ == "__main__":
     
     # Grid setup.
     x0 = 0
-    xL = 160e3
+    xL = 12e6
     dx = 10e3
     # dx = 0.01
     nx = int((xL - x0)/dx)
@@ -24,11 +24,12 @@ if __name__ == "__main__":
         
     # Parameters.
     alpha = 0.5
-    beta  = 1.
+    beta  = 0.
     gamma = 1
     
     # Source term.
     N     = 0.02
+    # N = 1e-3
     psi0 = 10 
     omega = 1.25e-4    
     dpsidx = lambda x, t: ((1/x - 2*x*(np.pi/xL)**2)*
@@ -36,7 +37,8 @@ if __name__ == "__main__":
 
     # Loop over time.
     endtime = 4e6
-    dt = c*dx/u
+    # dt = c*dx/u
+    dt = 10
     nt = int(np.ceil(endtime/dt))
     for t in range(nt):
         
@@ -46,7 +48,7 @@ if __name__ == "__main__":
         # Update inlet bc (for now just zero).
         # ...
         
-        for i in range(1, nx-1):
+        for i in range(1, nx):
             if i == nx-1:
                 phi0Plus1 = phi0[i] 
             else:
@@ -60,7 +62,8 @@ if __name__ == "__main__":
                         # Something wrong with source term i think :(
                         dt*(1 - alpha)*1j*N*phi0[i] + 
                         1j*N*dt*dpsidx(i*dx, t*dt)
-                        # dt*dpsidx(i*dx, t*dt)
+                        # 1j*N*dt*((1 - alpha)*dpsidx(i*dx, (t-1)*dt) + 
+                        #          alpha*dpsidx(i*dx, t*dt))
                         )
             phi1[i] /= (1 + alpha*beta*c - dt*alpha*1j*N)
                 
@@ -70,7 +73,7 @@ if __name__ == "__main__":
         # Update inlet bc (for now just zero).
         # ...
         
-        for i in range(1, nx-1):
+        for i in range(1, nx):
             if i == nx-1:
                 phi0Plus1 = phi0[i] 
                 phi1Plus1 = phi1[i] 
@@ -95,7 +98,10 @@ if __name__ == "__main__":
         phi0 = phi2.copy()
         # phi0 = phi1.copy()
         
-        plt.plot(X, phi2.real)
+        # imag -> w 
+        # real -> b
+        
+        plt.plot(X, phi2.imag)
         # plt.ylim([-1e-5, 1e-5]) # imag
-        plt.ylim([-5e-4, 5e-4]) # real
+        # plt.ylim([-5e-4, 5e-4]) # real
         plt.show()
