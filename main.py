@@ -2,14 +2,13 @@
 Student ID: 31827379
 """
 
-# exec("..\\imports.py")
-
 import numpy as np
 
 from pythonCode.timeschemes import ExplicitImplicitRK2
 from pythonCode.grid import Grid1D 
 from pythonCode.solver import Solver
 from pythonCode.sourceterms import DPsiDx
+import pythonCode.plotters as plotters
 
 if __name__ == "__main__":
     
@@ -22,7 +21,7 @@ if __name__ == "__main__":
     
     # Source terms.
     sFunc = DPsiDx()
-    sPhiCoeff = 1j*sFunc.N
+    sPhiCoeff = 1j*sFunc.params.N
     
     # Set time scheme.
     scheme = ExplicitImplicitRK2(sPhiCoeff, sFunc)
@@ -35,7 +34,11 @@ if __name__ == "__main__":
     
     # Initial condition.
     solver.grid.phi = np.zeros_like(solver.grid.X, dtype=np.complex128)
-    u = 5.
+    # u = 5.
+    u = 0.
+    
+    # Add plotter.
+    solver.plotter = plotters.plotter1
     
     # Run the solver.
     solver.run(u)

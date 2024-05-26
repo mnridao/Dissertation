@@ -23,7 +23,8 @@ class Solver:
         self.history = None
         
         # Plotter parameters.
-        self.plotEveryTimeStep = True
+        self.plotResults = True
+        self.plotEveryNTimesteps = 1
         self.plotter = plotters.defaultPlotter
     
     def run(self, u0):
@@ -46,5 +47,6 @@ class Solver:
                 self.history[i, ...] = self.grid.phi
             
             # Plot the thing.
-            if self.plotEveryTimeStep:
-                self.plotter(self.grid)
+            if self.plotResults:
+                if i % self.plotEveryNTimesteps == 0:
+                    self.plotter(self.grid)
