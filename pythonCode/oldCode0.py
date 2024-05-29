@@ -17,7 +17,7 @@ if __name__ == "__main__":
     X = np.linspace(x0, xL, nx)
     
     # Initial condition.
-    c = 0.5
+    # c = 0.5
     u = 5.
     
     phi0 = np.zeros_like(X, dtype=np.complex128)
@@ -40,6 +40,7 @@ if __name__ == "__main__":
     endtime = 4e6
     # dt = c*dx/u
     dt = 10
+    c = u*dt/dx
     nt = int(np.ceil(endtime/dt))
     for t in range(nt):
         

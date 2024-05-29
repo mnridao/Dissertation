@@ -49,4 +49,4 @@ class Solver:
             # Plot the thing.
             if self.plotResults:
                 if i % self.plotEveryNTimesteps == 0:
-                    self.plotter(self.grid)
+                    self.plotter(self.grid, i*self.dt, u0)
