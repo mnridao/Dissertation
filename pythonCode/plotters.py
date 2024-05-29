@@ -99,8 +99,7 @@ def plotWithAnalytical2(grid, t, u=None):
     
     # Calculate the analytic solution.
     ic = lambda x: (1+1j)*np.zeros_like(x, dtype=np.complex128)
-    phiAnaly = analy.analyticalSolution2(ic, sPhiCoeff, 
-                                         grid.X, t)
+    phiAnaly = analy.analyticalSolution2(ic, sPhiCoeff, grid.X, t)
     
     # Set the fontsize here.
     fontsize=15

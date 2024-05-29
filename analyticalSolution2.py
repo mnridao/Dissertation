@@ -37,8 +37,8 @@ if __name__ == "__main__":
     
     # Source terms.
     N = 0.02
-    # sPhiCoeff = 1j*N
-    sPhiCoeff = 1j*0
+    sPhiCoeff = 1j*N
+    # sPhiCoeff = 1j*0
     sFunc = DPsiDx()
         
     # Set time scheme.
@@ -50,8 +50,7 @@ if __name__ == "__main__":
     dt = 10
     nt = int(np.ceil(endtime/dt))
     solver = Solver(grid, scheme, dt, nt)
-    # solver.plotter = plotters.plotWithAnalytical2
-    solver.plotter = plotters.plotter1
+    solver.plotter = plotters.plotWithAnalytical2
     
     # Initial condition.
     solver.grid.phi = np.zeros_like(solver.grid.X, dtype=np.complex128)
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     for i in range(nt):
         
         # Calculate analytical solution for the current time step.
-        phiAnaly = analyticalSolution(ic, sPhiCoeff, u, grid.X, i*dt)
+        phiAnaly = analyticalSolution(ic, sPhiCoeff, grid.X, i*dt)
         
         # test.append(phiAnaly.imag)
                                 
