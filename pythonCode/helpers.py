@@ -4,6 +4,15 @@ Student ID: 31827379
 
 from scipy.stats import norm
 
+import pythonCode.timeschemes as ts
+
+def setScheme(key, args=()):
+    
+    if key == 1 or "ImpExRK":
+        return ts.ExplicitImplicitRK2(*args)
+    
+    # Free to add more.
+
 def waveIC(mu, sigma, X):
     """ 
     """
