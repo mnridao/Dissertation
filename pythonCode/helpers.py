@@ -3,16 +3,66 @@ Student ID: 31827379
 """
 
 from scipy.stats import norm
+import numpy as np
 
 import pythonCode.timeschemes as ts
+from pythonCode.grid import Grid1D 
+from pythonCode.solver import Solver 
+from pythonCode.model import Model
+from pythonCode.sourceterms import PsiParameters, DPsiDx
 
+## MISC ##
 def setScheme(key, args=()):
     
-    if key == 1 or "ImpExRK":
+    if key == 1 or "ImpExRK2":
         return ts.ExplicitImplicitRK2(*args)
     
     # Free to add more.
 
+def setupSolver(xbounds, dx, endtime, dt, schemeKey, sPhiCoeffFlag, sFuncFlag):
+    """ 
+    """
+    
+    # Setup grid.
+    x0, xL = xbounds
+    nx = int((xL - x0)/dx)
+    grid = Grid1D(xbounds, nx)
+    
+    # Setup model.
+    params = PsiParameters()
+    model = Model(grid, params)
+    
+    # Set time scheme.
+    schemeArgs = [1j*params.N*sPhiCoeffFlag]
+    # if sPhiCoeffFlag:
+    #     schemeArgs.append(1j * params.N)
+    if sFuncFlag:
+        schemeArgs.append(DPsiDx())
+    scheme = setScheme("ImpExRK2", *(schemeArgs, ))
+    
+    # Solver parameters.
+    nt = int(np.ceil(endtime/dt))
+    return Solver(model, scheme, dt, nt)
+
+## ERROR METRICS ##
+def l2(phiN, phiA, dx):
+    """ 
+    """
+    return (np.sqrt(np.sum(dx*np.power(phiN - phiA, 2)))/
+            np.sqrt(np.sum(dx*np.power(phiA, 2))))
+
+def rmse(phiN, phiA):
+    """ 
+    """
+    N = phiN.shape[0]
+    return np.sqrt(np.sum((phiA - phiN)**2)/N)
+
+def rms(phi):
+    """ 
+    """
+    return np.sqrt(np.mean(phi**2))
+
+## INITIAL CONDITIONS ##
 def waveIC(mu, sigma, X):
     """ 
     """
@@ -30,3 +80,9 @@ def middleWaveIC(X):
     sigma = 0.05*X[-1]
     
     return waveIC(mu, sigma, X)
+
+def complexZerosIC(X):
+    """ 
+    """
+    
+    return np.zeros_like(X, dtype=np.complex128)

@@ -9,11 +9,11 @@ class Solver:
     """ 
     """
     
-    def __init__(self, grid, scheme, dt, nt):
+    def __init__(self, model, scheme, dt, nt):
         """ """
         
         # Solver parameters.
-        self.grid   = grid
+        self.model   = model
         self.scheme = scheme
         self.dt     = dt
         self.nt     = nt
@@ -34,37 +34,37 @@ class Solver:
         
         # Initialise storage array.
         if self.store:
-            self.history = np.zeros(shape=(self.nt+1, *self.grid.phi.shape))
-            self.history[0, ...] = self.grid.phi
+            self.history = np.zeros(shape=(self.nt+1, *self.model.grid.phi.shape))
+            self.history[0, ...] = self.model.grid.phi
          
         for i in range(1, self.nt+1):
             
             # Calculate new time step value.
-            phi = self.scheme(self.grid, u0, self.dt, i)
+            phi = self.scheme(self.model.grid, u0, self.dt, i)
             
             # Update the old timestep value.
-            self.grid.phi = phi.copy()
+            self.model.grid.phi = phi.copy()
             
-            # Evaluate any functions added by user (e.g. energy)
+            # Evaluate any functions added by user (e.g. analytic solution)
             for eqn in self.customEquations.values():
                 if eqn["data"] is not None:
                     if eqn["data"].ndim > 1:
-                        eqn["data"][i+1] = eqn["func"](self, i)
+                        eqn["data"][i+1] = eqn["func"](i, *eqn["args"])
                     else:
-                        eqn["data"] = eqn["func"](self, i)
+                        eqn["data"] = eqn["func"](i, *eqn["args"])
                 else:
-                    eqn["func"](self, i) # Don't store.
+                    eqn["func"](i, *eqn["args"]) # Don't store.
                             
             # Store if necessary.
             if self.store:
-                self.history[i, ...] = self.grid.phi
+                self.history[i, ...] = self.model.grid.phi
             
             # Plot the thing.
             if self.plotResults:
                 if i % self.plotEveryNTimesteps == 0:
                     self.plotter(self)
 
-    def addCustomEquation(self, key, customEqn, nres=1, store=True):
+    def addCustomEquation(self, key, customEqn, args=(), nres=1, store=True):
         """ 
         Add an equation that will be evaluated at each timestep.
         
@@ -83,12 +83,12 @@ class Solver:
         # Initialise results data for custom function.
         if store:
             data = np.zeros(shape=(self.nt+1, nres))
-            data[0] = customEqn(self, 0)
+            data[0] = customEqn(0, *args)
         else:
-            data = customEqn(self, 0) # Save last value only.
+            data = customEqn(0, *args) # Save last value only.
             
         # Store in dict for easy accessing.
-        self.customEquations[key] = {"func": customEqn, "data": data}
+        self.customEquations[key] = {"func": customEqn, "data": data, "args": args}
         
     def getCustomData(self, key):
         """ 
