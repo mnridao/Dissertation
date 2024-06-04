@@ -34,7 +34,8 @@ class Solver:
         
         # Initialise storage array.
         if self.store:
-            self.history = np.zeros(shape=(self.nt+1, *self.model.grid.phi.shape))
+            self.history = np.zeros(shape=(self.nt+1, *self.model.grid.phi.shape), 
+                                    dtype=self.model.grid.phi.dtype)
             self.history[0, ...] = self.model.grid.phi
          
         for i in range(1, self.nt+1):
@@ -49,7 +50,7 @@ class Solver:
             for eqn in self.customEquations.values():
                 if eqn["data"] is not None:
                     if eqn["data"].ndim > 1:
-                        eqn["data"][i+1] = eqn["func"](i, *eqn["args"])
+                        eqn["data"][i] = eqn["func"](i, *eqn["args"])
                     else:
                         eqn["data"] = eqn["func"](i, *eqn["args"])
                 else:

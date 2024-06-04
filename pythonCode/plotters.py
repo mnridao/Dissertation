@@ -25,9 +25,7 @@ def plotter1(solver):
     axs[0].set_xlabel('X', fontsize=fontsize)
     axs[0].set_ylabel('b', fontsize=fontsize)
     axs[0].grid(True)
-    # axs[0].set_ylim([-1e-4, 1e-4])
     axs[0].set_ylim([-1e-6, 1e-6])
-    # axs[0].set_xlim(grid.xbounds)
     
     # Plot the imaginary part on the right subplot        
     axs[1].plot(solver.grid.X, solver.grid.phi.imag)
@@ -35,9 +33,6 @@ def plotter1(solver):
     axs[1].set_ylabel('Nw', fontsize=fontsize)
     axs[1].grid(True)
     axs[1].set_ylim([-0.3e-5, 0.3e-5])
-    # axs[1].set_ylim([-1e-3, 1e-3])
-    # axs[1].set_ylim([-1e-6, 1e-6])
-    # axs[1].set_xlim(grid.xbounds)
     
     plt.tight_layout()
     plt.show()
@@ -45,8 +40,11 @@ def plotter1(solver):
 
 def plotWithAnalytical1(solver):
     
-    yboundsRe = [-1e-6, 1e-6]
-    yboundsIm = [-1e-6, 1e-6]
+    # yboundsRe = [-1e-6, 1e-6]
+    # yboundsIm = [-1e-6, 1e-6]
+    
+    yboundsRe = [-1, 1]
+    yboundsIm = [-1, 1]
     
     plotWithAnalytical(solver, yboundsRe, yboundsIm)
     
@@ -109,5 +107,38 @@ def plotWithAnalytical(solver, yboundsRe, yboundsIm):
     axs[1].set_ylim(yboundsIm)
 
     plt.tight_layout()
+    plt.show()
+    plt.close()
+        
+def plotTimeSeriesAndTrajectories(data, time, figname):
+    """ 
+    """
+    
+    T = data[:, 0]
+    h = data[:, 1]
+    
+    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(22, 9), 
+                                 gridspec_kw={'width_ratios' : [3, 2]})
+    
+    # Time series subplot.
+    ax1.plot(time, T, label="$T_{E}$")
+    ax1.plot(time, h, label="h_{w}")
+    ax1.set_xlabel("Time", fontsize=25)
+    ax1.set_ylabel("$T_{E}$, $h_{w}$", fontsize=25)
+    ax1.tick_params(labelsize=20)
+    ax1.grid()
+    ax1.legend(fontsize=20, loc="lower right")
+    
+    # Trajectory subplot.
+    ax2.plot(T[0], h[0], 'o')  # Starting point.
+    ax2.plot(T, h)
+    ax2.set_xlabel("$h_{w}$", fontsize=25)
+    ax2.set_ylabel("$T_{E}$", fontsize=25)
+    ax2.tick_params(labelsize=25)
+    ax2.tick_params(labelsize=20)
+    ax2.grid()
+    
+    f.tight_layout()
+    f.savefig(figname)
     plt.show()
     plt.close()

@@ -19,7 +19,8 @@ def setScheme(key, args=()):
     
     # Free to add more.
 
-def setupSolver(xbounds, dx, endtime, dt, schemeKey, sPhiCoeffFlag, sFuncFlag):
+def setupSolver(xbounds, dx, endtime, dt, schemeKey, sPhiCoeffFlag, sFuncFlag, 
+                params=None):
     """ 
     """
     
@@ -29,13 +30,11 @@ def setupSolver(xbounds, dx, endtime, dt, schemeKey, sPhiCoeffFlag, sFuncFlag):
     grid = Grid1D(xbounds, nx)
     
     # Setup model.
-    params = PsiParameters()
+    params = params if params else PsiParameters()
     model = Model(grid, params)
     
     # Set time scheme.
     schemeArgs = [1j*params.N*sPhiCoeffFlag]
-    # if sPhiCoeffFlag:
-    #     schemeArgs.append(1j * params.N)
     if sFuncFlag:
         schemeArgs.append(DPsiDx())
     scheme = setScheme("ImpExRK2", *(schemeArgs, ))
@@ -50,6 +49,22 @@ def l2(phiN, phiA, dx):
     """
     return (np.sqrt(np.sum(dx*np.power(phiN - phiA, 2)))/
             np.sqrt(np.sum(dx*np.power(phiA, 2))))
+
+def l2ReCustomEqn(i, solver):
+    """ 
+    """
+    phiN = solver.model.grid.phi.real
+    phiA = solver.getCustomData("analytic").real
+    
+    return l2(phiN, phiA, solver.model.grid.dx)
+
+def l2ImCustomEqn(i, solver):
+    """ 
+    """
+    phiN = solver.model.grid.phi.imag
+    phiA = solver.getCustomData("analytic").imag
+    
+    return l2(phiN, phiA, solver.model.grid.dx)
 
 def rmse(phiN, phiA):
     """ 
