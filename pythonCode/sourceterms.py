@@ -19,9 +19,9 @@ class PsiParameters:
 
 class Psi:
     """ """
-    def __init__(self):
+    def __init__(self, params=None):
         """ """
-        self.params = PsiParameters()
+        self.params = params if params else PsiParameters()
         
     def __call__(self, x, t):
         """ """
@@ -33,9 +33,9 @@ class Psi:
 class DPsiDx:
     """ """
     
-    def __init__(self):
+    def __init__(self, params=None):
         """ """
-        self.params = PsiParameters()
+        self.params = params if params else PsiParameters()
     
     def __call__(self, x, t):
         """ """

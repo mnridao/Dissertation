@@ -48,7 +48,7 @@ def setupSolver(xbounds, dx, endtime, dt, schemeKey, sPhiCoeffFlag, sFuncFlag,
     # Set time scheme.
     schemeArgs = [1j*params.N*sPhiCoeffFlag]
     if sFuncFlag:
-        schemeArgs.append(DPsiDx())
+        schemeArgs.append(DPsiDx(params))
     scheme = setScheme("ImpExRK2", *(schemeArgs, ))
     
     # Solver parameters.

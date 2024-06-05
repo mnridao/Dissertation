@@ -65,7 +65,7 @@ def integrand4(t, X, u, params):
 def analyticalSolution4(i, solver):
     """ 
     Numerical integration solution to:
-        dphi\dt + u dphi\dx = iN phi
+        dphi\dt + u dphi\dx = iN dpsi\dx
     """    
     
     # Wrapper for integrator result.

@@ -11,6 +11,7 @@ from functools import partial
 import pythonCode.plotters as plotters
 import pythonCode.helpers as helpers
 import pythonCode.analyticalSolutions as analy
+from pythonCode.integrators import Trapezoidal
 from pythonCode.sourceterms import PsiParameters, DPsiDx, Psi
 
 def animateSolution(solver, phiN, phiA, ylabelIm, ylabelRe, figname):
@@ -31,9 +32,6 @@ def animateSolution(solver, phiN, phiA, ylabelIm, ylabelRe, figname):
         axs[0].set_xlabel('X [m]', fontsize=fontsize)
         axs[0].set_ylabel(ylabelRe, fontsize=fontsize)
         axs[0].grid(True)
-        axs[0].text(0.05, textposy, f'Time: {t:.2f} s', 
-                    # transform=ax1.transAxes, fontsize=20, verticalalignment='top'
-                    )
         axs[0].set_ylim(yboundsRe)
         
         # Plot the imaginary part on the right subplot   
@@ -43,6 +41,9 @@ def animateSolution(solver, phiN, phiA, ylabelIm, ylabelRe, figname):
         axs[1].set_xlabel('X [m]', fontsize=fontsize)
         axs[1].set_ylabel(ylabelIm, fontsize=fontsize)
         axs[1].grid(True)
+        axs[1].text(0.05, textposy, f'Time: {t:.2f} s', 
+                    # transform=ax1.transAxes, fontsize=20, verticalalignment='top'
+                    )
         axs[1].legend(fontsize=fontsize)
         axs[1].set_ylim(yboundsIm)
         
@@ -56,7 +57,7 @@ def animateSolution(solver, phiN, phiA, ylabelIm, ylabelRe, figname):
     imBuffer = 0.1*(imMax - imMin)
     reBuffer = 0.1*(reMax - reMin)
     
-    textposy = imMax+0.95*imBuffer
+    textposy = imMax
     
     yboundsIm = [imMin-imBuffer, imMax+imBuffer]
     yboundsRe = [reMin-reBuffer, reMax+reBuffer]
@@ -143,16 +144,15 @@ if __name__ == "__main__":
     var = streamfunction + 1j*grad
     animateSolution(solver, var, None, "dpsidx", "$\psi$", "streamfunction.gif")
     
-    #%% Streamfunction in equation.
+    #%% Streamfunction in equation (no advection).
     
     # Setup solver.
     params = PsiParameters()
-    params.N = 0.02
     params.omega = 2*np.pi/100
-    params.lx = 2
+    params.lx = 3
     endtime = 200
     dt = 0.5
-    solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-2, 
+    solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
                                  endtime=endtime, dt=dt, schemeKey=1, 
                                  sPhiCoeffFlag=False, sFuncFlag=True, params=params) # i think params arent change
     
@@ -162,11 +162,59 @@ if __name__ == "__main__":
     # Add analytical solution that will be evaluated each iteration.
     solver.addCustomEquation("analytic", analy.analyticalSolution3, 
                              args=(helpers.complexZerosIC, solver), 
-                             store=False)
+                             nres=solver.model.grid.phi.shape[0],
+                             store=True)
     
     # Add plotter.
-    solver.plotter = plotters.plotWithAnalytical3
+    solver.plotResults = False
     
     # Run without advection.
     u = 0.
+    solver.store = True
     solver.run(u)
+    
+    animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
+                    "Nw", "b", "streamfunctionNoAdvection.gif")
+        
+    #%%
+    
+    # Setup solver.
+    params = PsiParameters()
+    params.omega = 2*np.pi/100
+    params.lx = 3
+    endtime = 600 # 6 periods.
+    dt = 0.5
+    solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
+                                 endtime=endtime, dt=dt, schemeKey=1, 
+                                 sPhiCoeffFlag=False, sFuncFlag=True,
+                                 params=params)
+    
+    # Initial condition.
+    solver.model.grid.phi = helpers.complexZerosIC(solver.model.grid.X)
+        
+    # # Add plotter.
+    # solver.plotEveryNTimesteps = 1
+    # solver.plotter = plotters.plotWithAnalytical4
+    
+    # Add custom equation (analytical solution).
+    u = 0.01
+    integrator = Trapezoidal(analy.integrand4, solver.dt, solver.nt, 
+                             args=(solver.model.grid.X, u, solver.model.params), 
+                             store=False)
+    
+    solver.addCustomEquation("integrator", integrator, store=False)
+    solver.addCustomEquation("analytic", analy.analyticalSolution4, args=(solver,),
+                             nres = solver.model.grid.phi.shape[0],
+                             store=True)
+    
+    # Run the solver.
+    solver.plotResults=False
+    solver.store = True
+    solver.run(u)
+    
+    animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
+                    "Nw", "b", "streamfunctionAdvection.gif")
+    
+    #%%
+    
+    
