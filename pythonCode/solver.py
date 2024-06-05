@@ -29,7 +29,7 @@ class Solver:
         self.plotResults = True
         self.plotEveryNTimesteps = 1
         self.plotter = plotters.defaultPlotter
-    
+        
     def run(self, u0):
         
         # Initialise storage array.
@@ -64,7 +64,21 @@ class Solver:
             if self.plotResults:
                 if i % self.plotEveryNTimesteps == 0:
                     self.plotter(self)
-
+                    
+    def setNewTimestep(self, dt, endtime):
+        """ 
+        """        
+        # Set new dt and calculate new nt.
+        self.dt = dt 
+        self.nt = int(np.ceil(endtime/dt))
+        
+        # Update customEquations data fields.
+        for key, val in self.customEquations.items():
+            
+            # Change the size of the data array for the new nt.    
+            nres = val["data"].shape[0] if val["data"].ndim == 1 else val["data"].shape[1]
+            self.addCustomEquation(key, val["func"], val["args"], nres, val["store"])
+                    
     def addCustomEquation(self, key, customEqn, args=(), nres=1, store=True):
         """ 
         Add an equation that will be evaluated at each timestep.
@@ -83,13 +97,15 @@ class Solver:
         
         # Initialise results data for custom function.
         if store:
-            data = np.zeros(shape=(self.nt+1, nres))
-            data[0] = customEqn(0, *args)
+            data0 = customEqn(0, *args)
+            data = np.zeros(shape=(self.nt+1, nres), dtype=data0.dtype)
+            data[0] = data0
         else:
             data = customEqn(0, *args) # Save last value only.
             
         # Store in dict for easy accessing.
-        self.customEquations[key] = {"func": customEqn, "data": data, "args": args}
+        self.customEquations[key] = {"func": customEqn, "data": data, "args": args, 
+                                     "store": store}
         
     def getCustomData(self, key):
         """ 

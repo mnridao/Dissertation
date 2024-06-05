@@ -17,9 +17,9 @@ if __name__ == "__main__":
     endtime = T 
     dt = 50
     solver = helpers.setupSolver(xbounds=[0, 12], dx=10e-2, 
-                                 endtime=endtime, dt=dt, schemeKey=1, 
-                                 sPhiCoeffFlag=True, sFuncFlag=False,
-                                 params=params)
+                                  endtime=endtime, dt=dt, schemeKey=1, 
+                                  sPhiCoeffFlag=True, sFuncFlag=False,
+                                  params=params)
     
     # Initial condition.
     u = 0.
@@ -28,9 +28,9 @@ if __name__ == "__main__":
         
     # Add analytical solution that will be evaluated each iteration.
     solver.addCustomEquation("analytic", analy.analyticalSolution1, 
-                             args=(helpers.middleWaveIC, u, solver), 
-                             nres=solver.model.grid.phi.shape[0],
-                             store=False)
+                              args=(helpers.middleWaveIC, u, solver), 
+                              nres=solver.model.grid.phi.shape[0],
+                              store=False)
     
     # Add plotter.
     solver.plotResults = True
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # Run the solver.
     solver.store = False
     solver.run(u)
-
+    
     #%% Phase trajectories. Pick a spot in the domain.
     import matplotlib.pyplot as plt
     import numpy as np
@@ -81,35 +81,22 @@ if __name__ == "__main__":
         
     endtime = 2500
     dts = np.array([50, 10, 5, 1, 0.5, 0.1])
-    nts = np.array([int(np.ceil(endtime / dt)) for dt in dts])
     x0, xL = solver.model.grid.xbounds
     
     errorsIm = np.zeros_like(dts)
     errorsRe = np.zeros_like(dts)
     
-    # Iterate through the different time resolutions.
-    for i, (dti, nti) in enumerate(zip(dts, nts)):
-        
-        # Setup the solver for the current problem.
-        solver = helpers.setupSolver(xbounds=[0, 12], dx=10e-2, 
-                                     endtime=endtime, dt=dti, schemeKey=1, 
-                                     sPhiCoeffFlag=True, sFuncFlag=False,
-                                     params=params)
-        
-        # Initial condition.
-        u = 0.
-        solver.model.grid.phi = analy.analyticalSolution1(0, helpers.middleWaveIC, 
-                                                          u, solver)
-        
-        # Add analytical solution that will be evaluated each iteration.
-        solver.addCustomEquation("analytic", analy.analyticalSolution1, 
-                                 args=(helpers.middleWaveIC, u, solver), 
-                                 nres=solver.model.grid.phi.shape[0],
-                                 store=False)
-        
-        # Add plotter.
-        solver.plotResults = False
+    solver.plotResults = False
     
+    # Iterate through the different time resolutions.
+    for i, dti in enumerate(dts):
+        
+        # Reset Initial condition.
+        solver.model.grid.phi = helpers.setInitialCondition("a1", solver)
+            
+        # Change the timestep.
+        solver.setNewTimestep(dti, endtime)
+        
         # Run the solver.
         solver.run(u)
         

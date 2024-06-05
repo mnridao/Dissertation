@@ -10,12 +10,24 @@ from pythonCode.grid import Grid1D
 from pythonCode.solver import Solver 
 from pythonCode.model import Model
 from pythonCode.sourceterms import PsiParameters, DPsiDx
+import pythonCode.analyticalSolutions as analy
+import pythonCode.plotters as plotters
 
 ## MISC ##
 def setScheme(key, args=()):
     
     if key == 1 or "ImpExRK2":
         return ts.ExplicitImplicitRK2(*args)
+    
+    # Free to add more.
+
+def setInitialCondition(key, solver):
+    
+    if key == "a1":
+        return analy.analyticalSolution1(0, middleWaveIC, 0, solver)
+    
+    elif key == "zeros":
+        return complexZerosIC(solver.model.grid.X)
     
     # Free to add more.
 
@@ -42,6 +54,35 @@ def setupSolver(xbounds, dx, endtime, dt, schemeKey, sPhiCoeffFlag, sFuncFlag,
     # Solver parameters.
     nt = int(np.ceil(endtime/dt))
     return Solver(model, scheme, dt, nt)
+
+def setupSolverAndRun(xbounds, dx, endtime, dt, schemeKey, params, u, 
+                      sPhiCoeffFlag, sFuncFlag, icKey, customEqns=None, 
+                      plotResults=True, plotEveryNTimesteps=1, plotter=plotters.plotter1, 
+                      store=False):
+   
+    # Setup solver.
+    solver = setupSolver(xbounds=xbounds, dx=dx, endtime=endtime, dt=dt, schemeKey=schemeKey, 
+                                 sPhiCoeffFlag=sPhiCoeffFlag, sFuncFlag=sFuncFlag, 
+                                 params=params)
+    
+    # Initial condition.
+    solver.model.grid.phi = setInitialCondition(icKey, solver)
+    
+    # Add custom equations.
+    for customKey, customFunc, customArgs, nres, store in zip(customEqns):
+        solver.addCustomEquation(customKey, customFunc, args=customArgs, nres=nres, 
+                                 store=store)
+    
+    # Add plotters.
+    solver.plotResults = plotResults
+    solver.plotEveryNTimesteps = plotEveryNTimesteps
+    solver.plotter = plotter
+    
+    # Run solver.
+    solver.store = store
+    solver.run(u)
+    
+    return solver
 
 ## ERROR METRICS ##
 def l2(phiN, phiA, dx):
@@ -95,6 +136,21 @@ def middleWaveIC(X):
     sigma = 0.05*X[-1]
     
     return waveIC(mu, sigma, X)
+
+def leftWaveIC(X):
+    """
+    """
+    mu = 0.25*(X[-1] - X[0])/2
+    sigma = 0.05*X[-1]
+    
+    return waveIC(mu, sigma, X)
+
+def piecewiseWaveIC(X):
+    a = 1
+    b = 5
+    
+    smoothWave = lambda x, a, b : 0.5 * (1 - np.cos(2*np.pi * ((x - a) / (b - a))))
+    return np.array([0. if x <= a or x > b else smoothWave(x, a, b) for x in X])
 
 def complexZerosIC(X):
     """ 
