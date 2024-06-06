@@ -26,7 +26,7 @@ class Solver:
         self.customEquations = {}
         
         # Plotter parameters.
-        self.plotResults = True
+        self.plotResults = False
         self.plotEveryNTimesteps = 1
         self.plotter = plotters.defaultPlotter
         

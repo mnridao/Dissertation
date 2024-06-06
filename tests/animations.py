@@ -217,4 +217,64 @@ if __name__ == "__main__":
     
     #%%
     
+    # Setup solver.
+    params = PsiParameters()
+    params.omega = 2*np.pi/100
+    params.lx = 3
+    endtime = 200 # 6 periods.
+    dt = 0.5
+    solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
+                                 endtime=endtime, dt=dt, schemeKey=1, 
+                                 sPhiCoeffFlag=True, sFuncFlag=True,
+                                 params=params)
+    
+    # Add plotter.
+    solver.plotter = plotters.plotWithAnalytical2
+    
+    # Initial condition.
+    solver.model.grid.phi = helpers.complexZerosIC(solver.model.grid.X)
+    
+    # Add analytical solution that will be evaluated each iteration.
+    solver.addCustomEquation("analytic", analy.analyticalSolution2, 
+                             args=(helpers.complexZerosIC, solver), 
+                             nres = solver.model.grid.phi.shape[0],
+                             store=True)
+    
+    u = 0.
+    
+    # Run the solver.
+    solver.plotResults=False
+    solver.store = True
+    solver.run(u)
+    solver.run(u)
+    
+    animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
+                    "Nw", "b", "allNoAdvection.gif")
+    
+    #%% All with Advection.
+    
+    # Change the endtime (nt)
+    endtime = 600 # 6 periods.
+    nt = int(np.ceil(endtime/solver.dt))
+    solver.nt = nt
+    
+    # Reset initial condition.
+    solver.model.grid.phi = helpers.complexZerosIC(solver.model.grid.X)
+            
+    # Add custom equation (analytical solution).
+    u = 0.01
+    integrator = Trapezoidal(analy.integrand5, solver.dt, solver.nt, 
+                             args=(solver.model.grid.X, u, solver.model.params), 
+                             store=False)
+    
+    solver.addCustomEquation("integrator", integrator, store=False)
+    solver.addCustomEquation("analytic", analy.analyticalSolution5, args=(solver,), 
+                             nres = solver.model.grid.phi.shape[0],
+                             store=True)
+    
+    # Run the solver.
+    solver.run(u)
+    
+    animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
+                    "Nw", "b", "allAdvection.gif")
     

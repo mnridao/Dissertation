@@ -50,8 +50,11 @@ def plotWithAnalytical1(solver):
     
 def plotWithAnalytical2(solver):
     
-    yboundsRe = [-1e-4, 1e-4]
-    yboundsIm = [-0.3e-5, 0.3e-5]
+    # yboundsRe = [-1e-4, 1e-4]
+    # yboundsIm = [-0.3e-5, 0.3e-5]
+    
+    yboundsRe = [-10, 10]
+    yboundsIm = [-10, 10]
     
     plotWithAnalytical(solver, yboundsRe, yboundsIm)
     
