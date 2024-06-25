@@ -12,6 +12,12 @@ class Grid1D:
         
         self.nx = nx
         self.xbounds = xbounds
+                
+        self.setupGrid()
+    
+    def setupGrid(self):
+        """ 
+        """
         
         # Calculate grid spacing from inputs.
         self.dx = (self.xbounds[1] - self.xbounds[0]) / self.nx
@@ -21,8 +27,20 @@ class Grid1D:
         
         # Initialise the default state variable.
         self.resetFields()
-        
+    
     def resetFields(self):
         """ 
         """
         self.phi = np.zeros(shape=self.nx+1)
+    
+    def setNewGridBounds(self, xbounds):
+        """ 
+        """
+        self.xbounds = xbounds 
+        self.setupGrid()
+    
+    def setNewGridSpacing(self, dx):
+        """ 
+        """
+        self.dx = dx 
+        self.nx = int((self.xbounds[1] - self.xbounds[0]) / self.dx)

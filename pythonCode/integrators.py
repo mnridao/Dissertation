@@ -1,7 +1,6 @@
 """
 Student ID: 31827379
 """
-
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -40,6 +39,14 @@ class IntegrationStepper(ABC):
         # Store the value at current grid point.
         if self.store:
             self.I[i-1, ...] = self.I1
+    
+    def integrateToLimit(self, tL):
+        """ 
+        """
+        
+        nt = int(np.ceil(tL/self.h))
+        for i in range(1, nt+1):
+            self.__call__(i)
     
     @abstractmethod
     def calculateSubInterval(self, t):

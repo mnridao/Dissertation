@@ -23,12 +23,14 @@ if __name__ == "__main__":
     # Add analytical solution that will be evaluated each iteration.
     solver.addCustomEquation("analytic", analy.analyticalSolution1, 
                               args=(helpers.middleWaveIC, u, solver), 
+                              nres=solver.model.grid.phi.shape[0],
                               store=True)
     
     # Add plotter.
+    solver.plotResults=True
     solver.plotEveryNTimesteps = 1
     solver.plotter = plotters.plotWithAnalytical1
 
     # Run the solver.
-    solver.store = True
+    solver.store = False
     solver.run(u)

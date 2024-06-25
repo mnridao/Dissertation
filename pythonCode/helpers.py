@@ -21,10 +21,13 @@ def setScheme(key, args=()):
     
     # Free to add more.
 
-def setInitialCondition(key, solver):
+def setInitialCondition(key, solver, u=0):
     
     if key == "a1":
         return analy.analyticalSolution1(0, middleWaveIC, 0, solver)
+    
+    elif key == "a2":
+        return analy.analyticalSolution1(0, piecewiseWaveIC, u, solver)
     
     elif key == "zeros":
         return complexZerosIC(solver.model.grid.X)
@@ -117,6 +120,17 @@ def rms(phi):
     """ 
     """
     return np.sqrt(np.mean(phi**2))
+
+def energyCustom(i, solver):
+    """ 
+    """
+    phi = solver.model.grid.phi
+    return energy(phi)
+
+def energy(phi):
+    """ 
+    """
+    return np.sum(0.5*np.abs(phi)**2)
 
 ## INITIAL CONDITIONS ##
 def waveIC(mu, sigma, X):

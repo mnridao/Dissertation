@@ -39,7 +39,6 @@ class DPsiDx:
     
     def __call__(self, x, t):
         """ """
-        
         b = np.pi/self.params.lx
         return (1j*self.params.N*self.params.psi0*b*
                 (1 - 2*(b*x)**2)*np.sin(self.params.omega*t)*np.exp(-(b*x)**2))

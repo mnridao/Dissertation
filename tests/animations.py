@@ -85,7 +85,7 @@ if __name__ == "__main__":
     T = 2*np.pi/params.N # Period of oscillation
     endtime = T 
     dt = 0.5
-    solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-2, 
+    solver = helpers.setupSolver(xbounds=[0, 30], dx=10e-2, 
                                   endtime=endtime, dt=dt, schemeKey=1, 
                                   sPhiCoeffFlag=True, sFuncFlag=False,
                                   params=params)
@@ -99,15 +99,14 @@ if __name__ == "__main__":
     solver.addCustomEquation("analytic", analy.analyticalSolution1, 
                               args=(helpers.piecewiseWaveIC, u, solver), 
                               nres=solver.model.grid.phi.shape[0],
-                              store=True)
+                              store=False)
     
     # Run the solver.
-    solver.plotResults = False
+    solver.plotResults = True
     solver.plotter = plotters.plotWithAnalytical1
-    solver.store = True
+    solver.plotEveryNTimesteps = 10
+    solver.store = False
     solver.run(u)
-    
-    
     
     #%% Do the animation.
     
@@ -146,6 +145,8 @@ if __name__ == "__main__":
     
     #%% Streamfunction in equation (no advection).
     
+    import pythonCode.analyticalSolutions as analy
+    
     # Setup solver.
     params = PsiParameters()
     params.omega = 2*np.pi/100
@@ -154,35 +155,67 @@ if __name__ == "__main__":
     dt = 0.5
     solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
                                  endtime=endtime, dt=dt, schemeKey=1, 
-                                 sPhiCoeffFlag=False, sFuncFlag=True, params=params) # i think params arent change
+                                 sPhiCoeffFlag=False, sFuncFlag=True, params=params)
     
     # Initial condition.
     solver.model.grid.phi = helpers.complexZerosIC(solver.model.grid.X)
     
-    # Add analytical solution that will be evaluated each iteration.
-    solver.addCustomEquation("analytic", analy.analyticalSolution3, 
-                             args=(helpers.complexZerosIC, solver), 
-                             nres=solver.model.grid.phi.shape[0],
-                             store=True)
+    # # Add analytical solution that will be evaluated each iteration.
+    # solver.addCustomEquation("analytic", analy.analyticalSolution3, 
+    #                           args=(helpers.complexZerosIC, solver), 
+    #                           nres=solver.model.grid.phi.shape[0],
+    #                           store=True)
+    
+    # integrator = Trapezoidal(analy.integrand4, solver.dt, solver.nt, 
+    #                           args=(solver.model.grid.X[1:], u, solver.model.params), 
+    #                           store=False)
+    # solver.addCustomEquation("integrator", integrator, store=False)
+    # solver.addCustomEquation("analytic", analy.analyticalSolution4, args=(solver,),
+    #                           nres = solver.model.grid.phi.shape[0],
+    #                           store=False)
+    
+    integrator = Trapezoidal(analy.integrand4, solver.dt, solver.nt, 
+                              args=(0, solver.model.grid.X, u, solver.model.params), 
+                              store=False)
+    solver.addCustomEquation("integrator", integrator, store=False)
+    solver.addCustomEquation("analytic", analy.analyticalSolution4, 
+                             args=(helpers.complexZerosIC, u, solver),
+                             nres = solver.model.grid.phi.shape[0],
+                             store=False)
     
     # Add plotter.
-    solver.plotResults = False
+    solver.plotResults = True
+    solver.plotter = plotters.plotWithAnalytical3
     
     # Run without advection.
     u = 0.
-    solver.store = True
+    solver.nt=1
+    solver.store = False
     solver.run(u)
     
     animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
                     "Nw", "b", "streamfunctionNoAdvection.gif")
+    
+    #%%
+    u = 0.01
+    X = solver.model.grid.X
+    for t in range(solver.nt):
+        
+        plt.figure(figsize=(10, 10))
+        # x0 = solver.model.grid.X - u*t*solver.dt
+        plt.plot(X+u*t*solver.dt, analy.integrand4(t*solver.dt, X, u, solver.model.params).imag)
+        plt.ylim([-0.25, 0.25])
+        plt.show()
+        plt.close()
         
     #%%
+    import pythonCode.analyticalSolutions as analy
     
     # Setup solver.
     params = PsiParameters()
     params.omega = 2*np.pi/100
-    params.lx = 3
-    endtime = 600 # 6 periods.
+    params.lx = 4
+    endtime = 300 # 1 period = 100s.
     dt = 0.5
     solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
                                  endtime=endtime, dt=dt, schemeKey=1, 
@@ -191,29 +224,25 @@ if __name__ == "__main__":
     
     # Initial condition.
     solver.model.grid.phi = helpers.complexZerosIC(solver.model.grid.X)
-        
-    # # Add plotter.
-    # solver.plotEveryNTimesteps = 1
-    # solver.plotter = plotters.plotWithAnalytical4
-    
+            
     # Add custom equation (analytical solution).
     u = 0.01
-    integrator = Trapezoidal(analy.integrand4, solver.dt, solver.nt, 
-                             args=(solver.model.grid.X, u, solver.model.params), 
-                             store=False)
+    print(f"c = {u*solver.dt/solver.model.grid.dx}")
     
-    solver.addCustomEquation("integrator", integrator, store=False)
-    solver.addCustomEquation("analytic", analy.analyticalSolution4, args=(solver,),
-                             nres = solver.model.grid.phi.shape[0],
-                             store=True)
-    
+    solver.addCustomEquation("analytic", analy.analyticalSolution4_v2,
+                              args=(helpers.complexZerosIC, u, solver), 
+                              nres=solver.model.grid.phi.shape[0],
+                              store=True)
+        
     # Run the solver.
     solver.plotResults=False
+    solver.plotter=plotters.plotWithAnalytical3
+    solver.plotEveryNTimesteps = 10
     solver.store = True
     solver.run(u)
     
     animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
-                    "Nw", "b", "streamfunctionAdvection.gif")
+                    "Nw", "b", "streamfunctionAdvection22.gif")
     
     #%%
     
@@ -221,7 +250,7 @@ if __name__ == "__main__":
     params = PsiParameters()
     params.omega = 2*np.pi/100
     params.lx = 3
-    endtime = 200 # 6 periods.
+    endtime = 400 # 6 periods.
     dt = 0.5
     solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
                                  endtime=endtime, dt=dt, schemeKey=1, 
@@ -243,9 +272,9 @@ if __name__ == "__main__":
     u = 0.
     
     # Run the solver.
-    solver.plotResults=False
+    solver.plotResults = False
+    solver.plotter = plotters.plotWithAnalytical2
     solver.store = True
-    solver.run(u)
     solver.run(u)
     
     animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
@@ -253,28 +282,35 @@ if __name__ == "__main__":
     
     #%% All with Advection.
     
-    # Change the endtime (nt)
-    endtime = 600 # 6 periods.
-    nt = int(np.ceil(endtime/solver.dt))
-    solver.nt = nt
+    import pythonCode.analyticalSolutions as analy
     
+    # Setup solver.
+    params = PsiParameters()
+    params.omega = 2*np.pi/100
+    params.lx = 3
+    endtime = 400 # 6 periods.
+    dt = 0.5
+    solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
+                                 endtime=endtime, dt=dt, schemeKey=1, 
+                                 sPhiCoeffFlag=True, sFuncFlag=True,
+                                 params=params)
+        
     # Reset initial condition.
     solver.model.grid.phi = helpers.complexZerosIC(solver.model.grid.X)
             
     # Add custom equation (analytical solution).
-    u = 0.01
-    integrator = Trapezoidal(analy.integrand5, solver.dt, solver.nt, 
-                             args=(solver.model.grid.X, u, solver.model.params), 
-                             store=False)
-    
-    solver.addCustomEquation("integrator", integrator, store=False)
-    solver.addCustomEquation("analytic", analy.analyticalSolution5, args=(solver,), 
-                             nres = solver.model.grid.phi.shape[0],
-                             store=True)
+    u = 0.01    
+    solver.addCustomEquation("analytic", analy.analyticalSolution5_v2,
+                              args=(helpers.complexZerosIC, u, solver), 
+                              nres=solver.model.grid.phi.shape[0],
+                              store=True)
     
     # Run the solver.
+    solver.plotResults=False
+    solver.plotter=plotters.plotWithAnalytical3
+    solver.plotEveryNTimesteps = 10
+    solver.store = True
     solver.run(u)
-    
     animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
                     "Nw", "b", "allAdvection.gif")
     

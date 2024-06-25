@@ -1,6 +1,7 @@
 """
 Student ID: 31827379
 """
+import os
 
 import numpy as np
 import pythonCode.plotters as plotters
@@ -30,6 +31,10 @@ class Solver:
         self.plotEveryNTimesteps = 1
         self.plotter = plotters.defaultPlotter
         
+        # Saving snapshot info.
+        self.rootname = ''
+        self.snapshots = []
+        
     def run(self, u0):
         
         # Initialise storage array.
@@ -40,11 +45,29 @@ class Solver:
          
         for i in range(1, self.nt+1):
             
+            self.i = i # debugging.
+            self.u = u0 # debugging.
+            
             # Calculate new time step value.
             phi = self.scheme(self.model.grid, u0, self.dt, i)
+              
+            # Plot the thing.
+            if i in self.snapshots:
+                figname = f"{self.rootname}{i}"
+                app = ""
+                count = 0
+                while os.path.isfile(figname+app+".png"):
+                    count += 1
+                    app = f"({count})"
+                self.plotter(self, figname+app+".png", save=True)
             
-            # Update the old timestep value.
-            self.model.grid.phi = phi.copy()
+            if self.plotResults:
+                
+                if i in self.snapshots: # already plotted.
+                    break
+                
+                if i % self.plotEveryNTimesteps == 0:
+                    self.plotter(self)
             
             # Evaluate any functions added by user (e.g. analytic solution)
             for eqn in self.customEquations.values():
@@ -55,16 +78,14 @@ class Solver:
                         eqn["data"] = eqn["func"](i, *eqn["args"])
                 else:
                     eqn["func"](i, *eqn["args"]) # Don't store.
-                            
+                                                            
+            # Update the old timestep value.
+            self.model.grid.phi = phi.copy()
+            
             # Store if necessary.
             if self.store:
                 self.history[i, ...] = self.model.grid.phi
-            
-            # Plot the thing.
-            if self.plotResults:
-                if i % self.plotEveryNTimesteps == 0:
-                    self.plotter(self)
-                    
+                        
     def setNewTimestep(self, dt, endtime):
         """ 
         """        
@@ -78,7 +99,7 @@ class Solver:
             # Change the size of the data array for the new nt.    
             nres = val["data"].shape[0] if val["data"].ndim == 1 else val["data"].shape[1]
             self.addCustomEquation(key, val["func"], val["args"], nres, val["store"])
-                    
+        
     def addCustomEquation(self, key, customEqn, args=(), nres=1, store=True):
         """ 
         Add an equation that will be evaluated at each timestep.
@@ -125,3 +146,9 @@ class Solver:
         """
         
         return self.customEquations[key]["func"]
+    
+    def saveSnapshot(self, i):
+        """ 
+        """
+        
+        
