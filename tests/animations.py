@@ -139,9 +139,13 @@ if __name__ == "__main__":
         
         grad[i] = sDPsiDx(solver.model.grid.X, i*solver.dt).imag/sPsi.params.N
         streamfunction[i] = sPsi(solver.model.grid.X, i*solver.dt)
-     
+    
+        plt.plot(solver.model.grid.X, streamfunction[i])    
+        plt.ylim([-10, 10])
+        plt.show(), plt.close()
+        
     var = streamfunction + 1j*grad
-    animateSolution(solver, var, None, "dpsidx", "$\psi$", "streamfunction.gif")
+    # animateSolution(solver, var, None, "dpsidx", "$\psi$", "streamfunction.gif")
     
     #%% Streamfunction in equation (no advection).
     
@@ -287,10 +291,11 @@ if __name__ == "__main__":
     # Setup solver.
     params = PsiParameters()
     params.omega = 2*np.pi/100
+    # params.omega = 0.005
     params.lx = 3
     endtime = 400 # 6 periods.
     dt = 0.5
-    solver = helpers.setupSolver(xbounds=[0, 10], dx=10e-3, 
+    solver = helpers.setupSolver(xbounds=[-5, 10], dx=10e-3, 
                                  endtime=endtime, dt=dt, schemeKey=1, 
                                  sPhiCoeffFlag=True, sFuncFlag=True,
                                  params=params)
@@ -303,14 +308,14 @@ if __name__ == "__main__":
     solver.addCustomEquation("analytic", analy.analyticalSolution5_v2,
                               args=(helpers.complexZerosIC, u, solver), 
                               nres=solver.model.grid.phi.shape[0],
-                              store=True)
+                              store=False)
     
     # Run the solver.
-    solver.plotResults=False
+    solver.plotResults=True
     solver.plotter=plotters.plotWithAnalytical3
-    solver.plotEveryNTimesteps = 10
-    solver.store = True
+    solver.plotEveryNTimesteps = 5
+    solver.store = False
     solver.run(u)
-    animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
-                    "Nw", "b", "allAdvection.gif")
+    # animateSolution(solver, solver.history, solver.getCustomData("analytic"), 
+    #                 "Nw", "b", "allAdvection.gif")
     

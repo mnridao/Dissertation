@@ -7,6 +7,13 @@ import numpy as np
 from pythonCode.integrators import Trapezoidal
 # from pythonCode.helpers import helpers
     
+def advectionSolution(i, icFunc, u, solver):
+    """ 
+    """
+    X = solver.model.grid.X
+    t = i*solver.dt
+    return icFunc(X - u*t)
+
 def analyticalSolution1(i, icFunc, u, solver):
     """ 
     Analytical solution to:
@@ -78,7 +85,7 @@ def integrand4(t, endtime, X, u, params):
             params.psi0*b*(1 - 2*(a*b)**2)*np.sin(params.omega*t)*np.exp(-(a*b)**2))
     
     # Impose dirichlet boundary condition (phi=0) at lower boundary.
-    sol[X+u*t <= u*endtime] = 0
+    sol[X+u*t <= u*endtime + X[0]] = 0
     
     return sol
     
@@ -118,7 +125,7 @@ def integrand5(t, endtime, X, u, params):
            np.exp(1j*params.N*endtime))
     
     # Impose dirichlet boundary condition (phi=0) at lower boundary.
-    sol[X+u*t <= u*endtime] = 0
+    sol[X+u*t <= u*endtime + X[0]] = 0
     
     return sol
     

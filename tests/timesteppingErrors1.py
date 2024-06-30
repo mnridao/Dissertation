@@ -37,6 +37,11 @@ def runDifferentTimesteps(u, solver, dts, endtime, icKey, icArgs):
     
     return errorsIm, errorsRe    
 
+def runDifferentTimestepsA1(u, solver, dts, endtime):
+    icKey = "a1"
+    icArgs = (solver, )
+    return runDifferentTimesteps(u, solver, dts, endtime, icKey, icArgs)
+
 def plotl2(dts, errorsIm, errorsRe):
     
     plt.figure(figsize=(5, 5))
@@ -73,7 +78,7 @@ if __name__ == "__main__":
                               store=True)
         
     dts = np.array([50, 10, 5, 1, 0.5, 0.1])
-    errorsIm, errorsRe = runDifferentTimestepsA1(solver, dts, endtime)
+    errorsIm, errorsRe = runDifferentTimestepsA1(u, solver, dts, endtime)
     
     # Plot the l2 errors.
     plotl2(dts, errorsIm, errorsRe)

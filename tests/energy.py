@@ -38,16 +38,16 @@ def runDifferentTimestepsEnergy(c, Ndt, u, endtime, solver,
             solver.scheme.alpha = np.maximum(0.5, 1 - 1/c)
         if alphaKey == 3:
             solver.scheme.alpha = np.maximum(0.5, 1 - 1/(c + c*params.N*solver.dt))
-                
+        
+        # Reset initial condition.
+        solver.model.grid.phi = helpers.setInitialCondition(icKey, solver, u)
+        
         # Set new timestep.
         solver.setNewTimestep(dtj, endtime)
         
         # Set new dx.
         dxj = u*solver.dt/c
         solver.model.grid.setNewGridSpacing(dxj)
-        
-        # Reset initial condition.
-        solver.model.grid.phi = helpers.setInitialCondition(icKey, solver, u)
         
         print(f"c={u*solver.dt/solver.model.grid.dx}, \tdt={solver.dt}, \tdx={solver.model.grid.dx}, \talpha={solver.scheme.alpha}")
                             

@@ -24,14 +24,13 @@ class ExplicitImplicitRK2:
         
         # Calculate courant number.
         c = u0*dt/grid.dx
-        # c = 0.5
         
         # Runge-Kutte iterations (2nd-order).
         phikMinus1 = grid.phi.copy()
         for it in range(0, 2):
             
             # Update the RK prediction.
-            phik = self.rkNIteration(grid.phi, phikMinus1, c, nti, dt, grid.dx)
+            phik = self.rkNIteration(grid, phikMinus1, c, nti, dt)
                         
             # To avoid unnecessary copy of array - idk if needed.
             if it == 1:
@@ -42,15 +41,20 @@ class ExplicitImplicitRK2:
         
         return phik
                 
-    def rkNIteration(self, phi0, phikMinus1, c, nti, dt, dx):
+    def rkNIteration(self, grid, phikMinus1, c, nti, dt):
         
-        # Domain length.
-        nx = phi0.shape[0]
+        # Get variables from grid.
+        phi0 = grid.phi 
+        dx = grid.dx
+        nx = grid.nx
         
         # Initialise updated phi array.
         phik = np.zeros_like(phi0, dtype=phi0.dtype)
                 
         for i in range(1, nx):
+            
+            # For source term.
+            xi = grid.X[0] + dx*i
             
             phik[i] = (phi0[i] - 
                         (1 - self.alpha)*c*(phi0[i] - phi0[i-1]) - 
@@ -67,8 +71,8 @@ class ExplicitImplicitRK2:
                         # Source terms.
                         self.sPhiCoeff*dt*(1 - self.alpha)*phi0[i] + 
                        
-                        self.alpha*dt*self.sFunc(dx*i, dt*(nti-1)) + 
-                        (1 - self.alpha)*dt*self.sFunc(dx*i, dt*nti)
+                        self.alpha*dt*self.sFunc(xi, dt*(nti-1)) + 
+                        (1 - self.alpha)*dt*self.sFunc(xi, dt*nti)
                         )
             
             # TODO: Check for division by zero?

@@ -58,6 +58,12 @@ def setupSolver(xbounds, dx, endtime, dt, schemeKey, sPhiCoeffFlag, sFuncFlag,
     nt = int(np.ceil(endtime/dt))
     return Solver(model, scheme, dt, nt)
 
+def createNewGrid(xbounds, dx):
+    """ 
+    """
+    nx = int((xbounds[1] - xbounds[0])/dx)
+    return Grid1D(xbounds, nx)
+
 def setupSolverAndRun(xbounds, dx, endtime, dt, schemeKey, params, u, 
                       sPhiCoeffFlag, sFuncFlag, icKey, customEqns=None, 
                       plotResults=True, plotEveryNTimesteps=1, plotter=plotters.plotter1, 
